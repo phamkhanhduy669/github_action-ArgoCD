@@ -7,3 +7,4 @@ resources:
 - service.yaml
 images:
 - name: phamkhanhduy/course-app
+  newTag: 9f11118
