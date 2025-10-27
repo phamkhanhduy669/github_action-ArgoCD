@@ -12,7 +12,7 @@ jobs:
   build-and-push:
     name: Build and Push Docker Image
     permissions:
-      contents: write
+      contents: write 
     runs-on: ubuntu-latest
     
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -55,13 +55,21 @@ jobs:
           cd k8s
 
           # Sử dụng Kustomize để đặt image tag mới
-          kustomize edit set image ${{ secrets.DOCKERHUB_USERNAME }}/course-app:${{ secrets.vars.outputs.sha_short }}
+          kustomize edit set image ${{ secrets.DOCKERHUB_USERNAME }}/course-app:${{ steps.vars.outputs.sha_short }}
           
           # Cấu hình Git
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'github-actions-bot@users.noreply.github.com'
           
-          # Commit và push thay đổi
+          # Thêm file
           git add kustomization.yaml
-          git commit -m "CI: Update image tag to ${{ steps.vars.outputs.sha_short }} [skip ci]"
-          git push
+
+          # --- PHẦN SỬA LỖI ĐÂY ---
+          # Chỉ commit và push NẾU có thay đổi
+          if git diff-index --quiet HEAD; then
+            echo "Kustomization.yaml is already up to date. No commit needed."
+          else
+            echo "Changes detected, committing and pushing..."
+            git commit -m "CI: Update image tag to ${{ steps.vars.outputs.sha_short }} [skip ci]"
+            git push
+          fi
